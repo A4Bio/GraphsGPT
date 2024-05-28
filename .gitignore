@@ -1,0 +1,5 @@
+data_model_zoom/*
+.vscode/
+checkpoints/
+*__pycache__*
+results*
