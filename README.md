@@ -90,12 +90,10 @@ For further analysis on the Graph Words $\mathcal{W}$ of GraphsGPT (clustering, 
 ```
 
 ## Contact Us
-If you have any questions, please contact
+If you have any questions, please contact:
 
+- Gao ZhangYang: gaozhangyang@westlake.edu.cn
 
-```latex
-gaozhangyang@westlake.edu.cn
-
-dzdong2019@gmail.com
+- Dong DaiZe: dzdong2019@gmail.com
 ```
 
