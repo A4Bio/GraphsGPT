@@ -1,6 +1,7 @@
 torch==2.3.0
 transformers==4.41.1
-pytorch_lightning==2.2.5
+pytorch_lightning==1.9.5
+deepspeed==0.14.2
 rdkit==2023.9.6
 fcd_torch==1.0.7
 lmdb==1.4.1
@@ -9,3 +10,4 @@ pandas==2.2.2
 umap-learn==0.5.6
 hdbscan==0.8.36
 jupyter==1.0.0
+wandb==0.17.0

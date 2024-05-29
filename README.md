@@ -1,6 +1,6 @@
 # [GraphsGPT] A Graph is Worth $K$ Words:<br>Euclideanizing Graph using Pure Transformer (ICML2024)
 
-**Zhangyang Gao\*, Daize Dong\*, Cheng Tan, Jun Xia, Bozhen Hu, Stan Z. Li**
+**[Zhangyang Gao](https://scholar.google.com/citations?user=4SclT-QAAAAJ)\*, [Daize Dong](https://daizedong.github.io/)\*, [Cheng Tan](https://chengtan9907.github.io/), [Jun Xia](https://junxia97.github.io/), [Bozhen Hu](https://scholar.google.com/citations?user=6FZh9C8AAAAJ), [Stan Z. Li](https://scholar.google.com/citations?user=Y-nyLGIAAAAJ)**
 
 Published on *The 41st International Conference on Machine Learning (ICML 2024)*.
 
@@ -27,7 +27,7 @@ The model [checkpoints](https://huggingface.co/collections/DaizeDong/graphsgpt-6
 To get started with GraphsGPT, please run the following commands to install the environments.
 
 ```bash
-git clone git@github.com:DaizeDong/GraphsGPT.git
+git clone git@github.com:A4Bio/GraphsGPT.git
 cd GraphsGPT
 conda create --name graphsgpt python=3.12
 conda activate graphsgpt
@@ -47,10 +47,12 @@ To use GraphsGPT as the pipeline, please refer to [example_pipeline.ipynb](jupyt
 
 ## Representation
 
+You should first [download](https://github.com/A4Bio/GraphsGPT/releases/tag/data) the configurations and data for finetuning, and put them in `./data_finetune`. (We also include the finetuned checkpoints in the `model_zoom.zip` file for a quick test.)
+
 To evaluate the representation performance of Graph2Seq Encoder, please run:
 
 ```bash
-bash ./scripts/representation/eval.sh
+bash ./scripts/representation/finetune.sh
 ```
 
 You can also toggle the `--mixup_strategy` for graph mixup using Graph2Seq.
@@ -63,7 +65,7 @@ For unconditional generation with GraphGPT Decoder, please refer to [README-Gene
 
 For conditional generation with GraphGPT-C Decoder, please refer to [README-Generation-Cond.md](scripts%2Fgeneration%2Fconditional%2FREADME-Generation-Cond.md).
 
-To evaluate the unconditional generation performance of GraphGPT Decoder, please run:
+To evaluate the few-shots generation performance of GraphGPT Decoder, please run:
 
 ```bash
 bash ./scripts/generation/evaluation/moses.sh
@@ -92,6 +94,6 @@ For further analysis on the Graph Words $\mathcal{W}$ of GraphsGPT (clustering, 
 ## Contact Us
 If you have any questions, please contact:
 
-- Gao ZhangYang: gaozhangyang@westlake.edu.cn
+- Zhangyang Gao: gaozhangyang@westlake.edu.cn
 
-- Dong DaiZe: dzdong2019@gmail.com
+- Daize Dong: dzdong2019@gmail.com

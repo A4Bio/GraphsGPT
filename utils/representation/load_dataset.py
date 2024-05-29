@@ -1,11 +1,14 @@
-import numpy as np
 import os
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 from rdkit import Chem
 
 from .dictionary import Dictionary
 from .lmdb_dataset import LMDBDataset
+
+BASE_PATH = os.path.dirname(__file__)
 
 task_metainfo = {
     "esol": {
@@ -120,7 +123,7 @@ class DatasetTask:
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.dictionary = Dictionary.load('./entrypoints/representation/utils/dict.txt')
+        self.dictionary = Dictionary.load(os.path.join(BASE_PATH, "dict.txt"))
         self.seed = args.seed
         self.args.count = bool(self.args.count)
         self.args.multiple_conformation = bool(self.args.multiple_conformation)

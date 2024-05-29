@@ -1,31 +1,8 @@
+import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
 
-from entrypoints.representation.utils.data_interface import DInterface_base
-from entrypoints.representation.utils.load_dataset import DatasetTask
-
-
-def prepare_dict(my_dict):
-    new_dict = {}
-    for key, value in my_dict.items():
-        # 切割键
-        key_parts = key.split('.')
-        if len(key_parts) == 1:
-            first_level_key = key_parts[0]
-            new_dict[first_level_key] = value
-        elif len(key_parts) == 2:
-            # 获取第一级键和第二级键
-            first_level_key = key_parts[0]
-            second_level_key = key_parts[1]
-
-            # 检查第一级键是否已经存在于新字典中
-            if first_level_key in new_dict:
-                # 如果已存在，将值添加到第二级键下
-                new_dict[first_level_key][second_level_key] = value
-            else:
-                # 如果不存在，创建第一级键并添加第二级键和对应的值
-                new_dict[first_level_key] = {second_level_key: value}
-    return new_dict
+from .load_dataset import DatasetTask
 
 
 class MyDataLoader(DataLoader):
@@ -52,21 +29,38 @@ class MyDataLoader(DataLoader):
                     if type(sample[key][0]) == torch.Tensor:
                         sample[key] = torch.stack(sample[key], dim=0).cuda(non_blocking=True, device=self.pretrain_device)
 
-                # for k, ds in self.dataset.defn.items():
-                #     if self.split == 'train':
-                #         sample[k] = ds.collater([pair[0][k] for pair in batch]+[pair[1][k] for pair in batch])
-                #     else:
-                #         sample[k] = ds.collater([pair[0][k] for pair in batch])
-
-                #     if type(sample[k]) == torch.Tensor:
-                #         sample[k] = sample[k].cuda(non_blocking=True, device=self.pretrain_device)
-
-                # sample = prepare_dict(sample)
                 yield sample
 
 
 def collate_fn(batch):
     return batch
+
+
+class DInterface_base(pl.LightningDataModule):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.save_hyperparameters()
+        self.batch_size = self.hparams.batch_size
+        print("batch_size", self.batch_size)
+
+    def setup(self, stage=None):
+        # Assign train/val datasets for use in dataloaders
+        if stage == 'fit' or stage is None:
+            self.trainset = self.data_task.datasets['train']
+            self.valset = self.data_task.datasets['valid']
+
+        # Assign test dataset for use in dataloader(s)
+        if stage == 'test' or stage is None:
+            self.testset = self.data_task.datasets['test']
+
+    def train_dataloader(self):
+        return DataLoader(self.trainset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True, prefetch_factor=3)
+
+    def val_dataloader(self):
+        return DataLoader(self.valset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+
+    def test_dataloader(self):
+        return DataLoader(self.testset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
 
 
 class DInterface(DInterface_base):

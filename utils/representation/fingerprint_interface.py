@@ -20,8 +20,8 @@ class FPModel(nn.Module):
         super().__init__()
         self.model_name = model_name
         if model_name == 'graphsgpt':
-            self.model = GraphsGPTForCausalLM.from_pretrained("./data_model_zoom/graphgpt-1fp")
-            self.tokenizer = GraphsGPTTokenizer.from_pretrained("./data_model_zoom/graphgpt-1fp")
+            self.model = GraphsGPTForCausalLM.from_pretrained("DaizeDong/GraphsGPT-1W")
+            self.tokenizer = GraphsGPTTokenizer.from_pretrained("DaizeDong/GraphsGPT-1W")
             self.model.cuda()
             self.model.eval()
 

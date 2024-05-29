@@ -1,44 +1,43 @@
-import datetime
-import os
-import sys
-
-sys.path.append(os.getcwd())
-import warnings
-
-warnings.filterwarnings("ignore")
-
 import argparse
+import datetime
+import math
+import os
 import pytorch_lightning as pl
-import torch
-from pytorch_lightning.trainer import Trainer
 import pytorch_lightning.callbacks as plc
 import pytorch_lightning.loggers as plog
-from model_interface import MInterface
-from data_interface import DInterface
-import math
+import sys
+import torch
+import warnings
 from omegaconf import OmegaConf
-from entrypoints.representation.utils.logger import SetupCallback
+from pytorch_lightning.trainer import Trainer
+
+sys.path.append(os.getcwd())
+warnings.filterwarnings("ignore")
+
+from utils.representation.logger import SetupCallback
+from utils.representation.data_interface import DInterface
+from utils.representation.model_interface import MInterface
 
 model_zoom = {
-    'tox21': ['./data_model_zoom/model_zoom/tox21/tox21.yaml',
-              './data_model_zoom/model_zoom/tox21/tox21.pth'],
-    'toxcast': ['./data_model_zoom/model_zoom/toxcast/toxcast.yaml',
-                './data_model_zoom/model_zoom/toxcast/toxcast.pth'],
-    'bbbp': ['./data_model_zoom/model_zoom/bbbp/bbbp.yaml',
-             './data_model_zoom/model_zoom/bbbp/bbbp.pth'],
-    'sider': ['./data_model_zoom/model_zoom/sider/sider.yaml',
-              './data_model_zoom/model_zoom/sider/sider.pth'],
-    'hiv': ['./data_model_zoom/model_zoom/hiv/hiv.yaml',
-            './data_model_zoom/model_zoom/hiv/hiv.pth'],
-    'bace': ['./data_model_zoom/model_zoom/bace/bace.yaml',
-             './data_model_zoom/model_zoom/bace/bace.pth']
+    'tox21': ['./data_finetune/model_zoom/tox21/tox21.yaml',
+              './data_finetune/model_zoom/tox21/tox21.pth'],
+    'toxcast': ['./data_finetune/model_zoom/toxcast/toxcast.yaml',
+                './data_finetune/model_zoom/toxcast/toxcast.pth'],
+    'bbbp': ['./data_finetune/model_zoom/bbbp/bbbp.yaml',
+             './data_finetune/model_zoom/bbbp/bbbp.pth'],
+    'sider': ['./data_finetune/model_zoom/sider/sider.yaml',
+              './data_finetune/model_zoom/sider/sider.pth'],
+    'hiv': ['./data_finetune/model_zoom/hiv/hiv.yaml',
+            './data_finetune/model_zoom/hiv/hiv.pth'],
+    'bace': ['./data_finetune/model_zoom/bace/bace.yaml',
+             './data_finetune/model_zoom/bace/bace.pth']
 }
 
 
 def create_parser():
     parser = argparse.ArgumentParser()
     # Set-up parameters
-    parser.add_argument('--res_dir', default='./entrypoints/representation/results', type=str)
+    parser.add_argument('--res_dir', default="./results/representation", type=str)
     parser.add_argument('--ex_name', default='debug', type=str)
     parser.add_argument('--check_val_every_n_epoch', default=1, type=int)
 
@@ -56,7 +55,7 @@ def create_parser():
     parser.add_argument('--remove_polar_hydrogen', default=False, type=bool)
     parser.add_argument('--remove_hydrogen', default=False, type=bool)
     parser.add_argument('--fingerprint', default='graphsgpt', type=str)
-    parser.add_argument('--data', default='./data_model_zoom/molecular_property_prediction', type=str)
+    parser.add_argument('--data', default='./data_finetune/molecular_property_prediction', type=str)
     parser.add_argument('--conf_size', default=11, type=int)
     parser.add_argument('--max_atoms', default=256, type=int)
     parser.add_argument('--self_prob', default=0.1, type=float)
