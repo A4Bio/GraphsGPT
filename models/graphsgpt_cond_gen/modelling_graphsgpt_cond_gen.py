@@ -611,8 +611,9 @@ class GraphsGPTForConditionalGeneration(GraphsGPTConditionedPreTrainedModel, Gra
         norm_predict_features_c_end = F.normalize(predict_features_c_end, dim=1)
 
         # get normalized target features
+        # the former "max_atom_num" orthonormal_features in decoder for convergence acceleration
+        decoder_orthonormal_features = outputs.decoder_orthonormal_features[0, :, :]  # (max_atom_num, position_feature_size)
         # decoder_orthonormal_features = self.get_decoder_graph_position_features()  # (position_feature_size, position_feature_size)
-        decoder_orthonormal_features = outputs.decoder_orthonormal_features[0, :, :]  # the former "max_atom_num" orthonormal_features in decoder, (max_atom_num, position_feature_size)
         norm_decoder_orthonormal_features = F.normalize(decoder_orthonormal_features, dim=1)
 
         # get similarities & labels for acc
