@@ -3,14 +3,15 @@
 **[Zhangyang Gao](https://scholar.google.com/citations?user=4SclT-QAAAAJ)\*, [Daize Dong](https://daizedong.github.io/)\*, [Cheng Tan](https://chengtan9907.github.io/), [Jun Xia](https://junxia97.github.io/), [Bozhen Hu](https://scholar.google.com/citations?user=6FZh9C8AAAAJ), [Stan Z. Li](https://scholar.google.com/citations?user=Y-nyLGIAAAAJ)**
 
 Published on *The 41st International Conference on Machine Learning (ICML 2024)*.
-<span style="color: #315B98;">Graphs</span> <span style="color: #7B4399;">GPT</span>
+
 
 Can we model Non-Euclidean graphs as pure language or even Euclidean vectors while retaining their inherent information? The Non-Euclidean property have posed a long term challenge in graph modeling. Despite recent graph neural networks and graph transformers efforts encoding graphs as Euclidean vectors, recovering the original graph from vectors remains a challenge.
-In this paper, we introduce GraphsGPT, featuring an Graph2Seq encoder that transforms Non-Euclidean graphs into learnable GraphWords in the Euclidean space, along with a GraphGPT decoder that reconstructs the original graph from GraphWords to ensure information equivalence. We pretrain GraphsGPT on $100$M molecules and yield some interesting findings:
-(1) The pretrained Graph2Seq excels in graph representation learning, achieving state-of-the-art results on $8/9$ graph classification and regression tasks.
-(2) The pretrained GraphGPT serves as a strong graph generator, demonstrated by its strong ability to perform both few-shot and conditional graph generation.
-(3) Graph2Seq+GraphGPT enables effective graph mixup in the Euclidean space, overcoming previously known Non-Euclidean challenges.
-(4) The edge-centric pretraining framework \graphsgpt~demonstrates its efficacy in graph domain tasks, excelling in both representation and generation. 
+In this paper, we introduce <span style="color: #315B98;">Graphs</span><span style="color: #7B4399;">GPT</span>, featuring an <span style="color: #315B98;">Graph2Seq</span> encoder that transforms Non-Euclidean graphs into learnable GraphWords in the Euclidean space, along with a <span style="color: #7B4399;">GraphGPT</span> decoder that reconstructs the original graph from GraphWords to ensure information equivalence. We pretrain <span style="color: #315B98;">Graphs</span><span style="color: #7B4399;">GPT</span> on $100$M molecules and yield some interesting findings:
+
+-  The pretrained <span style="color: #315B98;">Graph2Seq</span> excels in graph representation learning, achieving state-of-the-art results on $8/9$ graph classification and regression tasks.
+-  The pretrained <span style="color: #7B4399;">GraphGPT</span> serves as a strong graph generator, demonstrated by its strong ability to perform both few-shot and conditional graph generation.
+-  <span style="color: #315B98;">Graph2Seq</span>+<span style="color: #7B4399;">GraphGPT</span> enables effective graph mixup in the Euclidean space, overcoming previously known Non-Euclidean challenges.
+-  The edge-centric pretraining framework <span style="color: #315B98;">Graphs</span><span style="color: #7B4399;">GPT</span> demonstrates its efficacy in graph domain tasks, excelling in both representation and generation. 
 
 ![graphsgpt.svg](graphsgpt.svg)
 
