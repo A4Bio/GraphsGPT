@@ -1,4 +1,4 @@
-# [GraphsGPT] A Graph is Worth $K$ Words:<br>Euclideanizing Graph using Pure Transformer
+# [GraphsGPT] A Graph is Worth $K$ Words:<br>Euclideanizing Graph using Pure Transformer (ICML2024)
 
 **Zhangyang Gao\*, Daize Dong\*, Cheng Tan, Jun Xia, Bozhen Hu, Stan Z. Li**
 
@@ -87,5 +87,15 @@ For further analysis on the Graph Words $\mathcal{W}$ of GraphsGPT (clustering, 
   journal={arXiv preprint arXiv:2402.02464},
   year={2024}
 }
+```
+
+## Contact Us
+If you have any questions, please contact
+
+
+```latex
+gaozhangyang@westlake.edu.cn
+
+dzdong2019@gmail.com
 ```
 
