@@ -5,6 +5,9 @@
 Published on *The 41st International Conference on Machine Learning (ICML 2024)*.
 
 
+
+## Introduction
+
 Can we model Non-Euclidean graphs as pure language or even Euclidean vectors while retaining their inherent information? The Non-Euclidean property have posed a long term challenge in graph modeling. Despite recent graph neural networks and graph transformers efforts encoding graphs as Euclidean vectors, recovering the original graph from vectors remains a challenge.
 In this paper, we introduce <span style="color: #315B98;">Graphs</span><span style="color: #7B4399;">GPT</span>, featuring an <span style="color: #315B98;">Graph2Seq</span> encoder that transforms Non-Euclidean graphs into learnable GraphWords in the Euclidean space, along with a <span style="color: #7B4399;">GraphGPT</span> decoder that reconstructs the original graph from GraphWords to ensure information equivalence. We pretrain <span style="color: #315B98;">Graphs</span><span style="color: #7B4399;">GPT</span> on $100$M molecules and yield some interesting findings:
 
@@ -15,9 +18,9 @@ In this paper, we introduce <span style="color: #315B98;">Graphs</span><span sty
 
 ![graphsgpt.svg](graphsgpt.svg)
 
-This is the official code implementation of the ICML 2024 paper [A Graph is Worth $K$ Words: Euclideanizing Graph using Pure Transformer](https://arxiv.org/abs/2402.02464).
+**This is the official code implementation of ICML 2024 paper [A Graph is Worth $K$ Words: Euclideanizing Graph using Pure Transformer](https://arxiv.org/abs/2402.02464).**
 
-The model [checkpoints](https://huggingface.co/collections/DaizeDong/graphsgpt-65efe70c326a1a5bd35c2fcc) can be downloaded from 🤗 Transformers. We provide both the foundational pretrained models with different number of Graph Words $\mathcal{W}$ (GraphsGPT-$n$W), and the conditional version with one Graph Word (GraphsGPT-1W-C).
+The model [checkpoints](https://huggingface.co/collections/DaizeDong/graphsgpt-65efe70c326a1a5bd35c2fcc) can be downloaded from 🤗 Transformers. We provide both the foundational pretrained models with different number of Graph Words $\mathcal{W}$ (GraphsGPT-nW), and the conditional version with one Graph Word (GraphsGPT-1W-C).
 
 | Model Name     | 🤗 Checkpoint                                              |
 | -------------- | --------------------------------------------------------- |
@@ -91,7 +94,7 @@ For further analysis on the Graph Words $\mathcal{W}$ of GraphsGPT (clustering, 
 
 ```latex
 @article{gao2024graph,
-  title={A Graph is Worth $ K $ Words: Euclideanizing Graph using Pure Transformer},
+  title={A Graph is Worth $K$ Words: Euclideanizing Graph using Pure Transformer},
   author={Gao, Zhangyang and Dong, Daize and Tan, Cheng and Xia, Jun and Hu, Bozhen and Li, Stan Z},
   journal={arXiv preprint arXiv:2402.02464},
   year={2024}
