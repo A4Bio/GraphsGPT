@@ -1041,20 +1041,6 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
 
         self.post_init()  # Initialize weights and apply final processing
 
-    # def post_init(self):
-    #     self.init_weights()
-    #     # orthonormal init for graph features
-    #     for name, module in self.named_modules():
-    #         if "learnable_orthonormal_features" in name:
-    #             module.weight.data = gaussian_orthogonal_random_matrix(
-    #                 self.config.position_feature_size,
-    #                 self.config.position_feature_size,
-    #                 random_shuffle=False,
-    #                 device=module.weight.device,
-    #                 dtype=module.weight.dtype,
-    #             )
-    #     self._backward_compatibility_gradient_checkpointing()
-
     def forward(
             self,
             input_ids: torch.LongTensor = None,
