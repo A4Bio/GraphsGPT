@@ -29,6 +29,7 @@ class GraphsGPTEncoderConditionedOutput(ModelOutput):
     graph_position_embeds: Optional[torch.FloatTensor] = None
     graph_position_features: Optional[torch.FloatTensor] = None
     orthonormal_features: Optional[torch.FloatTensor] = None
+    graph_embedding_ids: Optional[torch.LongTensor] = None
 
     attention_mask: Optional[torch.Tensor] = None
 
@@ -43,10 +44,12 @@ class GraphsGPTModelConditionedOutputWithPast(ModelOutput):
     encoder_graph_position_embeds: Optional[torch.FloatTensor] = None
     encoder_graph_position_features: Optional[torch.FloatTensor] = None
     encoder_orthonormal_features: Optional[torch.FloatTensor] = None
+    encoder_graph_embedding_ids: Optional[torch.LongTensor] = None
 
     decoder_graph_position_embeds: Optional[torch.FloatTensor] = None
     decoder_graph_position_features: Optional[torch.FloatTensor] = None
     decoder_orthonormal_features: Optional[torch.FloatTensor] = None
+    decoder_graph_embedding_ids: Optional[torch.LongTensor] = None
 
     attention_mask: Optional[torch.Tensor] = None
     fingerprint_tokens: torch.FloatTensor = None
@@ -177,6 +180,7 @@ class GraphsGPTEncoderConditioned(nn.Module):
             graph_position_embeds: Optional[torch.FloatTensor] = None,
             graph_position_features: Optional[torch.FloatTensor] = None,
             orthonormal_features: Optional[torch.FloatTensor] = None,
+            graph_embedding_ids: Optional[torch.LongTensor] = None,
             **kwargs,
     ) -> GraphsGPTEncoderConditionedOutput:
         batch_size, seq_length = identifier_ids.shape
@@ -240,6 +244,7 @@ class GraphsGPTEncoderConditioned(nn.Module):
                 device=device,
                 use_random_id=True,
                 adaptive_position_length=self.config.adaptive_position_length,
+                embedding_ids=graph_embedding_ids,
                 orthonormal_features=orthonormal_features,
                 graph_position_features=graph_position_features,
                 return_features=False,
@@ -247,6 +252,7 @@ class GraphsGPTEncoderConditioned(nn.Module):
             graph_position_embeds = graph_embedding_outputs.graph_position_embeds  # (batch_size, seq_len, embed_dim)
             graph_position_features = graph_embedding_outputs.graph_position_features  # None
             orthonormal_features = graph_embedding_outputs.orthonormal_features  # None
+            graph_embedding_ids = graph_embedding_outputs.embedding_ids
 
         if identifier_embeds is None:
             identifier_embeds = self.embed_identifier(identifier_ids.clone().int())  # (batch_size, seq_len, embed_dim)
@@ -311,6 +317,7 @@ class GraphsGPTEncoderConditioned(nn.Module):
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features,
             orthonormal_features=orthonormal_features,
+            graph_embedding_ids=graph_embedding_ids,
             attention_mask=attention_mask,
         )
 
@@ -367,6 +374,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
             encoder_graph_position_embeds: Optional[torch.FloatTensor] = None,
             encoder_graph_position_features: Optional[torch.FloatTensor] = None,
             encoder_orthonormal_features: Optional[torch.FloatTensor] = None,
+            encoder_graph_embedding_ids: Optional[torch.LongTensor] = None,
 
             # ↓↓↓↓ for decoder layers ↓↓↓↓
             fingerprint_tokens: Optional[torch.Tensor] = None,
@@ -375,6 +383,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
             decoder_graph_position_embeds: Optional[torch.FloatTensor] = None,
             decoder_graph_position_features: Optional[torch.FloatTensor] = None,
             decoder_orthonormal_features: Optional[torch.FloatTensor] = None,
+            decoder_graph_embedding_ids: Optional[torch.LongTensor] = None,
 
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = None,
@@ -414,6 +423,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
                 graph_position_embeds=encoder_graph_position_embeds,
                 graph_position_features=encoder_graph_position_features,
                 orthonormal_features=encoder_orthonormal_features,
+                graph_embedding_ids=encoder_graph_embedding_ids,
             )
             fingerprint_tokens = encoder_outputs.fingerprint_tokens
             if self.config.share_embeddings:
@@ -421,6 +431,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
             encoder_graph_position_embeds = encoder_outputs.graph_position_embeds
             encoder_graph_position_features = encoder_outputs.graph_position_features
             encoder_orthonormal_features = encoder_outputs.orthonormal_features
+            encoder_graph_embedding_ids = encoder_outputs.graph_embedding_ids
             values_properties = encoder_outputs.values_properties  # 🔍
             indices_properties = encoder_outputs.indices_properties  # 🔍
 
@@ -437,6 +448,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
             graph_position_embeds=decoder_graph_position_embeds,
             graph_position_features=decoder_graph_position_features,
             orthonormal_features=decoder_orthonormal_features,
+            graph_embedding_ids=decoder_graph_embedding_ids,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             past_query_key_values=past_query_key_values,
@@ -448,6 +460,7 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
         decoder_graph_position_embeds = decoder_outputs.graph_position_embeds
         decoder_graph_position_features = decoder_outputs.graph_position_features
         decoder_orthonormal_features = decoder_outputs.orthonormal_features
+        decoder_graph_embedding_ids = decoder_outputs.graph_embedding_ids
         next_cache = decoder_outputs.past_query_key_values
         all_hidden_states = decoder_outputs.all_hidden_states
         all_self_attns = decoder_outputs.all_attentions
@@ -459,9 +472,11 @@ class GraphsGPTModelConditioned(GraphsGPTConditionedPreTrainedModel):
             encoder_graph_position_embeds=encoder_graph_position_embeds,
             encoder_graph_position_features=encoder_graph_position_features,
             encoder_orthonormal_features=encoder_orthonormal_features,
+            encoder_graph_embedding_ids=encoder_graph_embedding_ids,
             decoder_graph_position_embeds=decoder_graph_position_embeds,
             decoder_graph_position_features=decoder_graph_position_features,
             decoder_orthonormal_features=decoder_orthonormal_features,
+            decoder_graph_embedding_ids=decoder_graph_embedding_ids,
             fingerprint_tokens=fingerprint_tokens,
             values_properties=values_properties,  # 🔍
             indices_properties=indices_properties,  # 🔍
@@ -680,6 +695,7 @@ class GraphsGPTForConditionalGeneration(GraphsGPTConditionedPreTrainedModel, Gra
 
             values_qed: torch.FloatTensor = None,  # 🔍
             values_sa: torch.FloatTensor = None,  # 🔍
+            values_lipinski: torch.FloatTensor = None,  # 🔍
             values_logp: torch.FloatTensor = None,  # 🔍
 
             num_fingerprint_tokens: Optional[int] = None,
@@ -690,6 +706,7 @@ class GraphsGPTForConditionalGeneration(GraphsGPTConditionedPreTrainedModel, Gra
             graph_position_embeds: Optional[torch.FloatTensor] = None,
             graph_position_features: Optional[torch.FloatTensor] = None,
             orthonormal_features: Optional[torch.FloatTensor] = None,
+            graph_embedding_ids: Optional[torch.LongTensor] = None,
             **kwargs,
     ) -> torch.FloatTensor:
         encoder_outputs: GraphsGPTEncoderConditionedOutput = self.model.encoder(
@@ -708,6 +725,7 @@ class GraphsGPTForConditionalGeneration(GraphsGPTConditionedPreTrainedModel, Gra
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features,
             orthonormal_features=orthonormal_features,
+            graph_embedding_ids=graph_embedding_ids,
         )
         fingerprint_tokens = encoder_outputs.fingerprint_tokens
 

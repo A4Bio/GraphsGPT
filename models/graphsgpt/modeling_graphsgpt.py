@@ -25,12 +25,16 @@ logger = logging.get_logger(__name__)
 
 _CONFIG_FOR_DOC = "GraphsGPTConfig"
 
+ALL_CONNECTION_LOSS_TYPES = ("classification", "contrastive")
+ALL_INITIALIZER_METHODS = ("manual", "hidden", "hidden-layer")
+
 
 @dataclass
 class GraphPositionEmbeddingOutput(ModelOutput):
     graph_position_embeds: torch.FloatTensor = None
     graph_position_features: Optional[torch.FloatTensor] = None
     orthonormal_features: Optional[torch.FloatTensor] = None
+    embedding_ids: Optional[torch.FloatTensor] = None
 
 
 @dataclass
@@ -42,6 +46,7 @@ class GraphsGPTEncoderOutput(ModelOutput):
     graph_position_embeds: Optional[torch.FloatTensor] = None
     graph_position_features: Optional[torch.FloatTensor] = None
     orthonormal_features: Optional[torch.FloatTensor] = None
+    graph_embedding_ids: Optional[torch.LongTensor] = None
 
     attention_mask: Optional[torch.Tensor] = None
 
@@ -55,6 +60,7 @@ class GraphsGPTDecoderOutputWithPast(ModelOutput):
     graph_position_embeds: Optional[torch.FloatTensor] = None
     graph_position_features: Optional[torch.FloatTensor] = None
     orthonormal_features: Optional[torch.FloatTensor] = None
+    graph_embedding_ids: Optional[torch.LongTensor] = None
 
     attention_mask: Optional[torch.Tensor] = None
     num_fingerprint_tokens: int = None
@@ -74,10 +80,12 @@ class GraphsGPTModelOutputWithPast(ModelOutput):
     encoder_graph_position_embeds: Optional[torch.FloatTensor] = None
     encoder_graph_position_features: Optional[torch.FloatTensor] = None
     encoder_orthonormal_features: Optional[torch.FloatTensor] = None
+    encoder_graph_embedding_ids: Optional[torch.LongTensor] = None
 
     decoder_graph_position_embeds: Optional[torch.FloatTensor] = None
     decoder_graph_position_features: Optional[torch.FloatTensor] = None
     decoder_orthonormal_features: Optional[torch.FloatTensor] = None
+    decoder_graph_embedding_ids: Optional[torch.LongTensor] = None
 
     attention_mask: Optional[torch.Tensor] = None
     fingerprint_tokens: torch.FloatTensor = None
@@ -244,6 +252,7 @@ class GraphPositionStableEmbedding(nn.Module):
             device,
             use_random_id=False,
             adaptive_position_length=False,  # useful only when "use_random_id" is "True"
+            embedding_ids=None,
             orthonormal_features=None,
             graph_position_features=None,
             return_features=True,
@@ -258,14 +267,15 @@ class GraphPositionStableEmbedding(nn.Module):
 
             # (batch_size, max_node_cnt, position_feature_size)
             if orthonormal_features is None:
-                if use_random_id:  # randomly assign positional embeddings to atoms
-                    if adaptive_position_length:  # indices range between (0, max_node_cnt)
-                        _, embedding_ids = torch.rand((batch_size, max_node_cnt), device=device).sort(dim=1)  # random indices
-                    else:  # indices range between (0, feature_dim)
-                        _, embedding_ids = torch.rand((batch_size, self.feature_dim), device=device).sort(dim=1)  # random indices
-                        embedding_ids = embedding_ids[:, :max_node_cnt]
-                else:
-                    embedding_ids = torch.arange(0, max_node_cnt, device=device).expand(batch_size, max_node_cnt)  # incremental indices
+                if embedding_ids is None:
+                    if use_random_id:  # randomly assign positional embeddings to atoms
+                        if adaptive_position_length:  # indices range between (0, max_node_cnt)
+                            _, embedding_ids = torch.rand((batch_size, max_node_cnt), device=device).sort(dim=1)  # random indices
+                        else:  # indices range between (0, feature_dim)
+                            _, embedding_ids = torch.rand((batch_size, self.feature_dim), device=device).sort(dim=1)  # random indices
+                            embedding_ids = embedding_ids[:, :max_node_cnt]
+                    else:
+                        embedding_ids = torch.arange(0, max_node_cnt, device=device).expand(batch_size, max_node_cnt)  # incremental indices
                 orthonormal_features = self.learnable_orthonormal_features(embedding_ids)
 
             start_indices = torch.arange(0, batch_size * max_node_cnt, step=max_node_cnt, device=device).unsqueeze(1)  # (batch_size, 1)
@@ -283,7 +293,8 @@ class GraphPositionStableEmbedding(nn.Module):
         return GraphPositionEmbeddingOutput(
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features if return_features else None,
-            orthonormal_features=orthonormal_features if return_features else None
+            orthonormal_features=orthonormal_features if return_features else None,
+            embedding_ids=embedding_ids if return_features else None,
         )
 
 
@@ -586,6 +597,7 @@ class GraphsGPTEncoder(nn.Module):
             graph_position_embeds: Optional[torch.FloatTensor] = None,
             graph_position_features: Optional[torch.FloatTensor] = None,
             orthonormal_features: Optional[torch.FloatTensor] = None,
+            graph_embedding_ids: Optional[torch.LongTensor] = None,
             **kwargs,
     ) -> GraphsGPTEncoderOutput:
 
@@ -633,6 +645,7 @@ class GraphsGPTEncoder(nn.Module):
                 device=device,
                 use_random_id=True,
                 adaptive_position_length=self.config.adaptive_position_length,
+                embedding_ids=graph_embedding_ids,
                 orthonormal_features=orthonormal_features,
                 graph_position_features=graph_position_features,
                 return_features=False,
@@ -640,6 +653,7 @@ class GraphsGPTEncoder(nn.Module):
             graph_position_embeds = graph_embedding_outputs.graph_position_embeds  # (batch_size, seq_len, embed_dim)
             graph_position_features = graph_embedding_outputs.graph_position_features  # None
             orthonormal_features = graph_embedding_outputs.orthonormal_features  # None
+            graph_embedding_ids = graph_embedding_outputs.embedding_ids  # None
 
         if identifier_embeds is None:
             identifier_embeds = self.embed_identifier(identifier_ids.clone().int())  # (batch_size, seq_len, embed_dim)
@@ -700,6 +714,7 @@ class GraphsGPTEncoder(nn.Module):
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features,
             orthonormal_features=orthonormal_features,
+            graph_embedding_ids=graph_embedding_ids,
             attention_mask=attention_mask,
         )
 
@@ -795,6 +810,7 @@ class GraphsGPTDecoder(nn.Module):
             graph_position_embeds: Optional[torch.FloatTensor] = None,
             graph_position_features: Optional[torch.FloatTensor] = None,
             orthonormal_features: Optional[torch.FloatTensor] = None,
+            graph_embedding_ids: Optional[torch.LongTensor] = None,
 
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = None,
@@ -847,13 +863,15 @@ class GraphsGPTDecoder(nn.Module):
                     device=device,
                     use_random_id=False,
                     adaptive_position_length=False,
-                    graph_position_features=graph_position_features,
+                    embedding_ids=graph_embedding_ids,
                     orthonormal_features=orthonormal_features,
+                    graph_position_features=graph_position_features,
                     return_features=True,
                 )
                 graph_position_embeds = graph_embedding_outputs.graph_position_embeds  # (batch_size, mole_seq_len, embed_dim)
                 graph_position_features = graph_embedding_outputs.graph_position_features  # (batch_size, mole_seq_len, 2 * position_feature_size)
                 orthonormal_features = graph_embedding_outputs.orthonormal_features  # (batch_size, max_atom_num, position_feature_size)
+                graph_embedding_ids = graph_embedding_outputs.embedding_ids  # (batch_size, max_atom_num)
 
             if identifier_embeds is None:
                 identifier_embeds = self.embed_identifier(identifier_ids.clone().int())  # (batch_size, mole_seq_len, embed_dim)
@@ -861,6 +879,7 @@ class GraphsGPTDecoder(nn.Module):
             graph_position_embeds = torch.empty((batch_size, 0, self.config.hidden_size), dtype=dtype, device=device)
             graph_position_features = torch.empty((batch_size, 0, 2 * self.config.position_feature_size), dtype=dtype, device=device)
             orthonormal_features = torch.empty((batch_size, 0, self.config.position_feature_size), dtype=dtype, device=device)
+            graph_embedding_ids = torch.empty((batch_size, 0), dtype=torch.int64, device=device)
             identifier_embeds = torch.empty((batch_size, 0, self.config.hidden_size), dtype=dtype, device=device)
 
         # add embeds together and get hidden_states
@@ -963,6 +982,7 @@ class GraphsGPTDecoder(nn.Module):
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features,
             orthonormal_features=orthonormal_features,
+            graph_embedding_ids=graph_embedding_ids,
             attention_mask=attention_mask,
             num_fingerprint_tokens=num_fingerprint_tokens,
             all_hidden_states=all_hidden_states,
@@ -1056,6 +1076,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
             encoder_graph_position_embeds: Optional[torch.FloatTensor] = None,
             encoder_graph_position_features: Optional[torch.FloatTensor] = None,
             encoder_orthonormal_features: Optional[torch.FloatTensor] = None,
+            encoder_graph_embedding_ids: Optional[torch.LongTensor] = None,
 
             # ↓↓↓↓ for decoder layers ↓↓↓↓
             fingerprint_tokens: Optional[torch.Tensor] = None,
@@ -1064,6 +1085,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
             decoder_graph_position_embeds: Optional[torch.FloatTensor] = None,
             decoder_graph_position_features: Optional[torch.FloatTensor] = None,
             decoder_orthonormal_features: Optional[torch.FloatTensor] = None,
+            decoder_graph_embedding_ids: Optional[torch.LongTensor] = None,
 
             output_attentions: Optional[bool] = None,
             output_hidden_states: Optional[bool] = None,
@@ -1099,6 +1121,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
                 graph_position_embeds=encoder_graph_position_embeds,
                 graph_position_features=encoder_graph_position_features,
                 orthonormal_features=encoder_orthonormal_features,
+                graph_embedding_ids=encoder_graph_embedding_ids,
                 **kwargs,
             )
             fingerprint_tokens = encoder_outputs.fingerprint_tokens
@@ -1107,6 +1130,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
             encoder_graph_position_embeds = encoder_outputs.graph_position_embeds
             encoder_graph_position_features = encoder_outputs.graph_position_features
             encoder_orthonormal_features = encoder_outputs.orthonormal_features
+            encoder_graph_embedding_ids = encoder_outputs.graph_embedding_ids
 
         # decoder
         decoder_outputs: GraphsGPTDecoderOutputWithPast = self.decoder(
@@ -1121,6 +1145,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
             graph_position_embeds=decoder_graph_position_embeds,
             graph_position_features=decoder_graph_position_features,
             orthonormal_features=decoder_orthonormal_features,
+            graph_embedding_ids=decoder_graph_embedding_ids,
             output_attentions=output_attentions,
             output_hidden_states=output_hidden_states,
             past_query_key_values=past_query_key_values,
@@ -1133,6 +1158,7 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
         decoder_graph_position_embeds = decoder_outputs.graph_position_embeds
         decoder_graph_position_features = decoder_outputs.graph_position_features
         decoder_orthonormal_features = decoder_outputs.orthonormal_features
+        decoder_graph_embedding_ids = decoder_outputs.graph_embedding_ids
         next_cache = decoder_outputs.past_query_key_values
         all_hidden_states = decoder_outputs.all_hidden_states
         all_self_attns = decoder_outputs.all_attentions
@@ -1144,9 +1170,11 @@ class GraphsGPTModel(GraphsGPTPreTrainedModel):
             encoder_graph_position_embeds=encoder_graph_position_embeds,
             encoder_graph_position_features=encoder_graph_position_features,
             encoder_orthonormal_features=encoder_orthonormal_features,
+            encoder_graph_embedding_ids=encoder_graph_embedding_ids,
             decoder_graph_position_embeds=decoder_graph_position_embeds,
             decoder_graph_position_features=decoder_graph_position_features,
             decoder_orthonormal_features=decoder_orthonormal_features,
+            decoder_graph_embedding_ids=decoder_graph_embedding_ids,
             fingerprint_tokens=fingerprint_tokens,
             num_fingerprint_tokens=num_fingerprint_tokens,
             all_hidden_states=all_hidden_states,
@@ -1352,6 +1380,7 @@ class GraphsGPTForCausalLM(GraphsGPTPreTrainedModel):
             graph_position_embeds: Optional[torch.FloatTensor] = None,
             graph_position_features: Optional[torch.FloatTensor] = None,
             orthonormal_features: Optional[torch.FloatTensor] = None,
+            graph_embedding_ids: Optional[torch.LongTensor] = None,
             **kwargs,
     ) -> torch.FloatTensor:
         encoder_outputs: GraphsGPTEncoderOutput = self.model.encoder(
@@ -1366,6 +1395,7 @@ class GraphsGPTForCausalLM(GraphsGPTPreTrainedModel):
             graph_position_embeds=graph_position_embeds,
             graph_position_features=graph_position_features,
             orthonormal_features=orthonormal_features,
+            graph_embedding_ids=graph_embedding_ids,
             **kwargs,
         )
         return encoder_outputs.fingerprint_tokens
@@ -1522,6 +1552,8 @@ class GraphsGPTForCausalLM(GraphsGPTPreTrainedModel):
                 identifier_embeds=None,
                 graph_position_embeds=None,  # graph_position_embeds
                 graph_position_features=None,
+                orthonormal_features=None,
+                graph_embedding_ids=None,
                 output_attentions=None,
                 output_hidden_states=None,
                 past_query_key_values=past_query_key_values if seq_len > 1 else None,
