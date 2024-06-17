@@ -22,13 +22,13 @@ In this paper, we introduce <span style="color: #315B98;">Graphs</span><span sty
 
 The model [checkpoints](https://huggingface.co/collections/DaizeDong/graphsgpt-65efe70c326a1a5bd35c2fcc) can be downloaded from 🤗 Transformers. We provide both the foundational pretrained models with different number of Graph Words $\mathcal{W}$ (GraphsGPT-nW), and the conditional version with one Graph Word (GraphsGPT-1W-C).
 
-| Model Name     | 🤗 Checkpoint                                              |
-| -------------- | --------------------------------------------------------- |
-| GraphsGPT-1W   | https://huggingface.co/DaizeDong/GraphsGPT-1W/tree/main   |
-| GraphsGPT-2W   | https://huggingface.co/DaizeDong/GraphsGPT-2W/tree/main   |
-| GraphsGPT-4W   | https://huggingface.co/DaizeDong/GraphsGPT-4W/tree/main   |
-| GraphsGPT-8W   | https://huggingface.co/DaizeDong/GraphsGPT-8W/tree/main   |
-| GraphsGPT-1W-C | https://huggingface.co/DaizeDong/GraphsGPT-1W-C/tree/main |
+| Model Name     | Model Type       | Model Checkpoint                                                                                                                               |
+| -------------- |------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| GraphsGPT-1W   | Foundation Model | <a href="https://huggingface.co/DaizeDong/GraphsGPT-1W"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Open In HuggingFace-yellow"/></a>  |
+| GraphsGPT-2W   | Foundation Model | <a href="https://huggingface.co/DaizeDong/GraphsGPT-2W"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Open In HuggingFace-yellow"/></a>   |
+| GraphsGPT-4W   | Foundation Model |<a href="https://huggingface.co/DaizeDong/GraphsGPT-4W"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Open In HuggingFace-yellow"/></a>   |
+| GraphsGPT-8W   | Foundation Model | <a href="https://huggingface.co/DaizeDong/GraphsGPT-8W"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Open In HuggingFace-yellow"/></a>   |
+| GraphsGPT-1W-C | Finetuned Model  |<a href="https://huggingface.co/DaizeDong/GraphsGPT-1W-C"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Open In HuggingFace-yellow"/></a> |
 
 
 
@@ -51,7 +51,7 @@ pip install -r requirement.txt
 
 We provide some Jupyter Notebooks in `./jupyter_notebooks`, and their corresponding online Google Colaboratory Notebooks. You can run them for a quick start.
 
-| Example                      | Jupyter Notebook                                                          | Google Colaboratory                                                                                                                                                                                            |
+| Example Name                 | Jupyter Notebook                                                          | Google Colaboratory                                                                                                                                                                                            |
 |------------------------------|---------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **GraphsGPT Pipeline**       | [example_pipeline.ipynb](jupyter_notebooks%2Fexample_pipeline.ipynb)      | <a href="https://colab.research.google.com/drive/1BCsdQntGkSAjZgOIH_OQgPBGIMmgeW0d?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
 | Graph Clustering Analysis    | [clustering.ipynb](jupyter_notebooks%2Fanalysis%2Fclustering.ipynb)       | <a href="https://colab.research.google.com/drive/1ghYf4_yuENLNXks-sNEEeiiNxIZpeSVc?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
@@ -86,12 +86,6 @@ To evaluate the few-shots generation performance of GraphGPT Decoder, please run
 bash ./scripts/generation/evaluation/moses.sh
 bash ./scripts/generation/evaluation/zinc250k.sh
 ```
-
-
-
-## Analysis
-
-For further analysis on the Graph Words $\mathcal{W}$ of GraphsGPT (clustering, interpolation, and hybridization), please refer to the Jupyter Notebooks in `./jupyter_notebooks/analysis`.
 
 
 
