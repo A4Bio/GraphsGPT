@@ -49,9 +49,14 @@ pip install -r requirement.txt
 
 ## Quick Start
 
-We provide some Jupyter Notebook examples in `./jupyter_notebooks`, you can run them for a quick start.
+We provide some Jupyter Notebooks in `./jupyter_notebooks`, and their corresponding online Google Colaboratory Notebooks. You can run them for a quick start.
 
-To use GraphsGPT as the pipeline, please refer to [example_pipeline.ipynb](jupyter_notebooks%2Fexample_pipeline.ipynb).
+| Example                      | Jupyter Notebook                                                          | Google Colaboratory                                                                                                                                                                                            |
+|------------------------------|---------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **GraphsGPT Pipeline**       | [example_pipeline.ipynb](jupyter_notebooks%2Fexample_pipeline.ipynb)      | <a href="https://colab.research.google.com/drive/1BCsdQntGkSAjZgOIH_OQgPBGIMmgeW0d?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
+| Graph Clustering Analysis    | [clustering.ipynb](jupyter_notebooks%2Fanalysis%2Fclustering.ipynb)       | <a href="https://colab.research.google.com/drive/1ghYf4_yuENLNXks-sNEEeiiNxIZpeSVc?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
+| Graph Hybridization Analysis | [hybridization.ipynb](jupyter_notebooks%2Fanalysis%2Fhybridization.ipynb) | <a href="https://colab.research.google.com/drive/10tu2S7DH9qEdAZ6qbtESKHQOq0sfLtdO?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
+| Graph Interpolation Analysis | [interpolation.ipynb](jupyter_notebooks%2Fanalysis%2Finterpolation.ipynb) | <a href="https://colab.research.google.com/drive/14vZ5tX42onQfSRTZXmnLZ36xIKZIgl5G?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a> |
 
 
 

@@ -339,6 +339,7 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
     def _convert_token_lists_to_molecule(self, input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids, kekulize: bool = False) -> Optional[Chem.Mol]:
         try:
             # extract information
+            # input_ids: PAD 0, BOS 1, atoms 2-119, bonds 120-?
             new_input_ids = [id - 1 for id in input_ids]  # skip the padding and BOS
 
             atom_numbers = []
@@ -390,8 +391,9 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
     def _convert_token_tensors_to_molecule(self, input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids, kekulize: bool = False) -> Optional[Chem.Mol]:
         try:
             # extract information
-            seq_len = identifier_ids.shape[0]
+            # input_ids: PAD 0, BOS 1, atoms 2-119, bonds 120-?
             new_input_ids = input_ids - 1  # skip the padding and BOS
+            seq_len = identifier_ids.shape[0]
 
             atom_numbers = new_input_ids[identifier_ids].tolist()
 
