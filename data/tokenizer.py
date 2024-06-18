@@ -1,14 +1,14 @@
-from multiprocessing import Pool
-
 import os
 import pickle
+from multiprocessing import Pool
+from typing import Tuple, List, Dict, Union, Optional
+
 import torch
 import torch.nn.utils.rnn as rnn_utils
 from rdkit import Chem, RDLogger
 from rdkit.Chem import MolStandardize, AllChem
 from transformers import PreTrainedTokenizer
 from transformers.utils import logging
-from typing import Tuple, List, Dict, Union, Optional
 
 logger = logging.get_logger(__name__)
 
@@ -195,7 +195,11 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
                 graph_position_ids_2[i] = connection_list[now_edge_id][1]
                 now_edge_id += 1
 
-        return atom_and_bond_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids
+        # add offsets to the ids
+        # atom_and_bond_ids: atoms 1-118, bonds 119-?
+        input_ids = [id + 1 for id in atom_and_bond_ids]
+
+        return input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids
 
     def _convert_graph_sequence_to_tensor(self, id_list, mask_list, connection_list) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         atom_and_bond_ids = torch.tensor(id_list, dtype=torch.int64)  # embedding ids for atom and bond features
@@ -222,7 +226,11 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
         graph_position_ids_1[edge_indices] = graph_position_ids_1_edge.unsqueeze(1)
         graph_position_ids_2[edge_indices] = graph_position_ids_2_edge.unsqueeze(1)
 
-        return atom_and_bond_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids
+        # add offsets to the ids
+        # atom_and_bond_ids: atoms 1-118, bonds 119-?
+        input_ids = atom_and_bond_ids + 1  # 0 for padding tokens, 1 for BOS tokens
+
+        return input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids
 
     def encode(self, smiles_or_mol: Union[str, Chem.Mol], return_tensors: str = None) -> Union[Dict[str, torch.LongTensor], Dict[str, List], None]:
         """
@@ -241,14 +249,11 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
             id_list, mask_list, connection_list = graph_sequence
 
             # Adjust all node & edge tokens to its true embedding indices in the model.
-            # atom_and_bond_ids: atoms 1-118, bonds 119-?
             # input_ids: PAD 0, BOS 1, atoms 2-119, bonds 120-(?+1)
             if return_tensors is None:
-                atom_and_bond_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids = self._convert_graph_sequence_to_list(id_list, mask_list, connection_list)
-                input_ids = [id + 1 for id in atom_and_bond_ids]
+                input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids = self._convert_graph_sequence_to_list(id_list, mask_list, connection_list)
             elif return_tensors == "pt":
-                atom_and_bond_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids = self._convert_graph_sequence_to_tensor(id_list, mask_list, connection_list)
-                input_ids = atom_and_bond_ids + 1  # 0 for padding tokens, 1 for BOS tokens
+                input_ids, graph_position_ids_1, graph_position_ids_2, identifier_ids = self._convert_graph_sequence_to_tensor(id_list, mask_list, connection_list)
             else:
                 raise NotImplementedError
 
@@ -340,18 +345,18 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
         try:
             # extract information
             # input_ids: PAD 0, BOS 1, atoms 2-119, bonds 120-?
-            new_input_ids = [id - 1 for id in input_ids]  # skip the padding and BOS
+            input_ids = [id - 1 for id in input_ids]  # skip the padding and BOS
 
             atom_numbers = []
             bond_numbers = []
             bond_connections = []
             for i, identifier_id in enumerate(identifier_ids):
                 if identifier_id == 0:  # bond
-                    bond_id = new_input_ids[i]
+                    bond_id = input_ids[i]
                     bond_numbers.append(self.inverse_bond_dict[bond_id][2])
                     bond_connections.append((graph_position_ids_1[i], graph_position_ids_2[i]))
                 else:  # atom
-                    atom_numbers.append(new_input_ids[i])
+                    atom_numbers.append(input_ids[i])
 
             # create an empty mole
             editable_mol = Chem.EditableMol(Chem.Mol())
@@ -392,12 +397,12 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
         try:
             # extract information
             # input_ids: PAD 0, BOS 1, atoms 2-119, bonds 120-?
-            new_input_ids = input_ids - 1  # skip the padding and BOS
+            input_ids = input_ids - 1  # skip the padding and BOS
             seq_len = identifier_ids.shape[0]
 
-            atom_numbers = new_input_ids[identifier_ids].tolist()
+            atom_numbers = input_ids[identifier_ids].tolist()
 
-            bond_ids = new_input_ids[~identifier_ids].tolist()
+            bond_ids = input_ids[~identifier_ids].tolist()
             bond_numbers = [self.inverse_bond_dict[bond_id][2] for bond_id in bond_ids]
             bond_connections = torch.stack((graph_position_ids_1, graph_position_ids_2), dim=0)[~identifier_ids.expand(2, seq_len)].reshape(2, -1).t().split(1, dim=0)
             bond_connections = [connection.tolist()[0] for connection in bond_connections]
@@ -515,8 +520,16 @@ class GraphsGPTTokenizer(PreTrainedTokenizer):
                     with Pool(nprocs) as p:
                         results = p.starmap(
                             self._decode_single_list,
-                            [(input_ids[i], graph_position_ids_1[i], graph_position_ids_2[i], identifier_ids[i], kekulize)
-                             for i in range(len(input_ids))]
+                            [
+                                (
+                                    input_ids[i],
+                                    graph_position_ids_1[i],
+                                    graph_position_ids_2[i],
+                                    identifier_ids[i],
+                                    kekulize
+                                )
+                                for i in range(len(input_ids))
+                            ]
                         )
                         mol_list = [result[0] for result in results]
                         smiles_list = [result[1] for result in results]
