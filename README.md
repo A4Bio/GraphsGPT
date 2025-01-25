@@ -42,7 +42,7 @@ cd GraphsGPT
 conda create --name graphsgpt python=3.12
 conda activate graphsgpt
 pip install -e .[dev]
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 
