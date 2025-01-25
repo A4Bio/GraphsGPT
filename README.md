@@ -37,7 +37,7 @@ The model [checkpoints](https://huggingface.co/collections/DaizeDong/graphsgpt-6
 To get started with GraphsGPT, please run the following commands to install the environments.
 
 ```bash
-git clone git@github.com:A4Bio/GraphsGPT.git
+git clone git@github.com:A4Bio/GraphsGPT.git --depth=1
 cd GraphsGPT
 conda create --name graphsgpt python=3.12
 conda activate graphsgpt
